@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import PlayerSelect from "./components/PlayerSelect";
+import BattleSection from "./components/BattleSection"; // <-- import here
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
 function App() {
   const [player, setPlayer] = useState(null);
   const [playerId, setPlayerId] = useState("");
-  const [battleResult, setBattleResult] = useState(null);
 
   // ✅ Create Player
   const handleSelect = async (roleName) => {
@@ -17,29 +17,14 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/player/create",
-        { id: playerId, playerRole: roleName }  
+        "http://192.168.0.101:8081/api/player/create",
+        { id: playerId, playerRole: roleName }
       );
       console.log(response.data);
-      
       setPlayer(response.data);
     } catch (err) {
       console.error(err);
       alert("Failed to create player. Is backend running?");
-    }
-  };
-
-  // Battle trigger
-  const handleBattle = async (enemyId) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:8083/api/battle/start",
-        { params: { playerId: playerId } }
-      );
-      setBattleResult(response.data);
-    } catch (error) {
-      console.error(error);
-      alert("Failed to start battle!");
     }
   };
 
@@ -65,7 +50,7 @@ function App() {
                 placeholder="e.g., hero123"
               />
             </div>
-            <PlayerSelect onSelect={handleSelect} />  {/* ✅ Passing roleName */}
+            <PlayerSelect onSelect={handleSelect} />
           </motion.div>
         ) : (
           <motion.div
@@ -77,7 +62,7 @@ function App() {
             className="text-center"
           >
             <h1 className="text-3xl font-bold mb-4">
-              Welcome, {player.name} the {player.playerRole.description}!
+              Welcome, {playerId} the {player.playerRole.description}!
             </h1>
             <p className="text-lg">Level: {player.level}</p>
             <p className="text-lg">HP: {player.playerRole.stats.HP}</p>
@@ -86,24 +71,8 @@ function App() {
             <p className="text-lg">Intelligence: {player.playerRole.stats.INT}</p>
             <p className="text-lg">Gold: {player.gold}</p>
 
-            <button
-              onClick={() => handleBattle("goblin01")}
-              className="mt-4 px-4 py-2 bg-red-600 rounded hover:bg-red-800"
-            >
-              Start Battle
-            </button>
-
-            {battleResult && (
-              <div className="mt-6 p-4 bg-gray-800 rounded">
-                <h2 className="text-xl font-bold">{battleResult.result}</h2>
-                <p>Gold Earned: {battleResult.gold}</p>
-                {battleResult.lootItem && (
-                  <p>
-                    Loot: {battleResult.lootItem} × {battleResult.lootQty}
-                  </p>
-                )}
-              </div>
-            )}
+            {/* Render BattleSection and pass playerId */}
+            <BattleSection playerId={playerId} />
           </motion.div>
         )}
       </AnimatePresence>
